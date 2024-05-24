@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import {Web3} from 'web3';
+import Web3 from 'web3';
 import './App.css';
 
 function OrgInterface() {
   const [orgData, setOrgData] = useState({ companySize: '', companyReview: '', workingHours: '' });
   const [response, setResponse] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
-  const web3 = new Web3(Web3.givenProvider);
 
   const handleChange = (e) => {
     setOrgData({
@@ -37,24 +36,26 @@ function OrgInterface() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(orgData)
+        body: JSON.stringify({ ...orgData, walletAddress })
       });
       const data = await res.json();
-      
-      if (data.validation === 'Eligible') {
+      setResponse(data.validation);
+
+      if (data.txData) {
+        const web3 = new Web3(window.ethereum);
         const tx = {
+          from: walletAddress,
           to: data.contractAddress,
           data: data.txData,
-          gas: data.gasLimit,
-          gasPrice: data.gasPrice
+          gas: await web3.eth.estimateGas({ to: data.contractAddress, data: data.txData }),
         };
-        
-        const signedTx = await web3.eth.sendTransaction(tx, walletAddress);
-        console.log('Transaction signed:', signedTx);
-        
-        setResponse('Eligible');
-      } else {
-        setResponse('Fail');
+        web3.eth.sendTransaction(tx)
+          .on('receipt', (receipt) => {
+            console.log('Transaction receipt:', receipt);
+          })
+          .on('error', (error) => {
+            console.error('Transaction error:', error);
+          });
       }
     } catch (error) {
       console.error(error);
