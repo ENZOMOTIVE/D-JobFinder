@@ -1,56 +1,46 @@
 const express = require('express');
-const bodyParser = require('body-parser');  // used to parse data in HTTP requests
-const {Web3} = require('web3');
-const { BlobServiceClient, BlockBlobClient } = require('@azure/storage-blob');
+const bodyParser = require('body-parser');
+const Web3 = require('web3');
+const { BlobServiceClient } = require('@azure/storage-blob');
 const cors = require('cors');
 const morgan = require('morgan');
 
 const app = express();
-require('dotenv').config();  
+require('dotenv').config();
 
-
-app.use(morgan('dev')); // Log requests to the console
+app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(cors());
 
-//integration with the blockchain
-const web3 = new Web3(new Web3.providers.HttpProvider('RPC_SERVER_LINK'));
-const contractABI= ['MY_CONTRACT_ABI'];
-const contractAddress = 'MY_CONTRACT_ADDRESS'; //contract deply address
-const contract = new web3.eth.Contract(contractABI,contractAddress);
-const systemAddress = 'MY_WALLET_ADDRESS'; //wallet address
+const web3 = new Web3(new Web3.providers.HttpProvider(process.env.RPC_SERVER_URL));
+const contractABI = process.env.CONTRACT_ABI;
+const contractAddress = process.env.CONTRACT_ADDRESS; //Address of the Deployed Contract
+const contract = new web3.eth.Contract(contractABI, contractAddress);
 
+const blobServiceClient = BlobServiceClient.fromConnectionString('AZURE_CONNECTION_STRING');
+const containerClient = blobServiceClient.getContainerClient('AZURE_CONTAINER_NAME');
 
-//Microsoft Azure Integration
-const blobServiceClient = BlobServiceClient.fromConnectionString('AZURE-CONNECTION-STRING'); //Azure storage connection string
-const containerClient = blobServiceClient.getContainerClient('AZURE-CONTAINER-NAME'); //Container name
-
-//Admin criteria
 let adminCriteria = {};
 
-
-// Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ error: 'Internal Server Error' });
 });
 
-app.post('/admin-interface',(req, res) => {
+app.post('/admin-interface', (req, res) => {
     adminCriteria = req.body;
-    res.json({ message: 'Criteria saved succesfully'});
+    res.json({ message: 'Criteria saved successfully' });
 });
 
-app.post('/user-interface', async (req, res) => {
-    const userData = req.body;
-    const { ph, temp, turbidity, walletAddress } = userData;
+app.post('/org-interface', async (req, res) => {
+    const orgData = req.body;
+    const { companySize, companyReview, workingHours, walletAddress } = orgData;
 
-    console.log("Received user data:", userData);
+    console.log("Received org data:", orgData);
 
-    // Validation
-    const result = validateData(userData);
+    const result = validateData(orgData);
     console.log("Validation result:", result);
 
-    // Save JSON file to the blob storage
     const fileName = `result-${Date.now()}.json`;
     console.log("File name:", fileName);
 
@@ -59,56 +49,21 @@ app.post('/user-interface', async (req, res) => {
 
     try {
         const uploadResponse = await blockBlobClient.upload(
-            JSON.stringify({ ...userData, result }),
-            Buffer.byteLength(JSON.stringify({ ...userData, result }))
+            JSON.stringify({ ...orgData, result }),
+            Buffer.byteLength(JSON.stringify({ ...orgData, result }))
         );
         console.log("File uploaded successfully:", uploadResponse);
 
-        // Get the file URL
         const fileUrl = blockBlobClient.url;
         console.log("File URL:", fileUrl);
 
-        // Prepare transaction data for MetaMask
-        const tx = contract.methods.storeFileMetadata(ph, temp, turbidity, fileUrl);
-        const txData = tx.encodeABI();
+        const txData = contract.methods.storeFileMetadata(companySize, companyReview, workingHours, fileUrl).encodeABI();
         console.log("Transaction data prepared:", txData);
-
-        // Send transaction using the user's wallet address
-        const nonce = await web3.eth.getTransactionCount(systemAddress);
-        console.log("Nonce:", nonce);
-
-        const gasLimit = await contract.methods.storeFileMetadata(ph, temp, turbidity, fileUrl).estimateGas({ from: systemAddress });
-        const gasPrice = await web3.eth.getGasPrice();
-        const txObject = {
-            nonce: web3.utils.toHex(nonce),
-            to: contractAddress,
-            gasLimit: web3.utils.toHex(gasLimit),
-            gasPrice: web3.utils.toHex(gasPrice),
-            data: txData
-        };
-        console.log("Transaction object:", txObject);
-
-        const signedTx = await web3.eth.accounts.signTransaction(txObject, process.env.PRIVATE_KEY);
-        console.log("Transaction signed:", signedTx);
-
-        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-        console.log("Transaction sent, receipt:", receipt);
-
-        // Get the transaction hash
-        const transactionHash = receipt.transactionHash;
-
-        // Update the blob storage with the transaction hash
-        const updatedUploadResponse = await blockBlobClient.upload(
-            JSON.stringify({ ...userData, result, transactionHash }),
-            Buffer.byteLength(JSON.stringify({ ...userData, result, transactionHash })),
-            { overwrite: true } // Overwrite the previous file
-        );
-        console.log("File updated successfully with transaction hash:", updatedUploadResponse);
 
         res.json({
             validation: result,
             contractAddress: contractAddress,
-            transactionHash: transactionHash,
+            txData: txData,
             fileUrl: fileUrl
         });
     } catch (error) {
@@ -117,18 +72,17 @@ app.post('/user-interface', async (req, res) => {
     }
 });
 
-function validateData(userData) {
-    //we can implement the logic
-    if (userData.ph > adminCriteria.ph && userData.temp > adminCriteria.temp && userData.turbidity === adminCriteria.turbidity) {
-        return 'Good';
+function validateData(orgData) {
+    if (orgData.companySize >= adminCriteria.companySize &&
+        orgData.companyReview >= adminCriteria.companyReview &&
+        orgData.workingHours <= adminCriteria.workingHours) {
+        return 'Eligible';
     } else {
-        return 'Bad';
+        return 'Fail';
     }
 }
 
-
-// Start the server
-const PORT = process.env.PORT || 3000 ;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

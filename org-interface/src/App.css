@@ -17,7 +17,7 @@
   display: block;
   margin-bottom: 10px;
   color: #666;
-  margin-right: 20px;
+  margin-right:20px;
 }
 
 .OrgInterface form input[type="number"] {
@@ -41,4 +41,14 @@
 
 .OrgInterface form button[type="submit"]:hover {
   background-color: #45a049; /* Darker green on hover */
+}
+
+.score-eligible {
+  color: green;
+  font-weight: bold;
+}
+
+.score-fail {
+  color: red;
+  font-weight: bold;
 }
