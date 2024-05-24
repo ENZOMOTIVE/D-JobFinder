@@ -1,25 +1,48 @@
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
 
-function App() {
+function OrgInterface() {
+  const [orgData, setOrgData] = useState({ companySize: '', companyReviews: '', workingHours: '' });
+
+  const handleChange = (e) => {
+    setOrgData({
+      ...orgData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // Handle form submission here
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="OrgInterface">
+      <h1>Organisation Interface</h1>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Company Size:
+          <input type="number" name="companySize" value={orgData.companySize} onChange={handleChange} />
+        </label>
+        <br />
+        <label>
+          Company Reviews (out of 5):
+          <input type="number" name="companyReviews" value={orgData.companyReviews} onChange={handleChange} />
+        </label>
+        <br />
+        <label>
+          Working Hours per Week:
+          <input type="number" name="workingHours" value={orgData.workingHours} onChange={handleChange} />
+        </label>
+        <br />
+        <button type="submit">Submit</button>
+      </form>
     </div>
   );
 }
 
-export default App;
+export default OrgInterface;
