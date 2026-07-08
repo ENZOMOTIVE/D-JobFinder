@@ -1,43 +1,33 @@
 # D JobFinder
 
-## Project Tags
-
-- `Full Stack`
-- `Protocol`
-
-## Overview
-
-D JobFinder is a full-stack application with separate frontend and backend pieces.
+`D-JobFinder` is a React-based application with frontend source files and package metadata for local development.
 
 ## Features
 
-- User-facing frontend or app interface
-- Backend service, API, websocket, bot, or server workflow
+- React-based frontend with a local development workflow
+- Backend entry point for API or server-side workflows
 
 ## Tech Stack
 
 - React
-- Express
-- Node.js
-- JavaScript
-- HTML
-- CSS
+- Vite
+- Express/Node backend
 
 ## Project Structure
 
-- `.gitattributes` - project file or directory
-- `Server` - backend, API, bot, or server code
-- `admin-interface` - frontend application code
-- `org-interface` - frontend application code
+- `.gitattributes` - project file
+- `README.md` - project documentation
+- `Server` - backend service code
+- `admin-interface` - project directory
+- `org-interface` - project directory
 
 ## Getting Started
 
 ### Prerequisites
 
-- Git
 - Node.js 18+
 
-### Setup and Run
+### Setup
 
 ```bash
 git clone https://github.com/ENZOMOTIVE/D-JobFinder.git
@@ -61,15 +51,16 @@ npm install
 npm start
 ```
 
-## Commands
+## Available Commands
 
-- `Server/package.json`: `test`
-- `admin-interface/package.json`: `start`, `build`, `test`, `eject`
-- `org-interface/package.json`: `start`, `build`, `test`, `eject`
+- `Server/package.json` - scripts: `test`
+- `admin-interface/package.json` - scripts: `start`, `build`, `test`, `eject`
+- `org-interface/package.json` - scripts: `start`, `build`, `test`, `eject`
 
 ## Configuration
 
-- Document required service ports, database URLs, and API credentials before deployment.
+- Create a local `.env` file for secrets, API keys, RPC URLs, private keys, bot tokens, or database credentials.
+- Keep `.env` files out of version control and document required variable names as the project stabilizes.
 
 ## Testing and Quality
 
@@ -79,18 +70,27 @@ npm start
 - From `org-interface`, run `npm test`.
 - From `org-interface`, run `npm run build`.
 
-## Documentation Notes
+## Roadmap
 
-- Keep this README aligned with the actual source layout and commands.
-- Add screenshots, API examples, contract addresses, or deployment links when they become stable.
-- Update the project tags when the scope changes.
+- Keep setup instructions aligned with the actual project workflow.
+- Add screenshots, architecture notes, or API examples as the implementation grows.
+- Document deployment steps once the hosting target is finalized.
 
 ## Contributing
 
-1. Create a focused branch for the change.
-2. Update code and documentation together.
+1. Create a feature branch.
+2. Make focused changes and update documentation when behavior changes.
 3. Run the relevant checks before opening a pull request.
 
 ## License
 
-No license file is currently committed. Add one before distributing this project publicly.
+No license file is currently included. Add one before distributing or reusing this project publicly.
+
+## Project Metadata
+
+| Field | Details |
+| --- | --- |
+| Repository | `ENZOMOTIVE/D-JobFinder` |
+| Categories | `Full Stack`, `Protocol` |
+| Primary stack | React, Express, Node.js, JavaScript, HTML, CSS |
+
